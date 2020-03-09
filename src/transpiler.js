@@ -160,7 +160,9 @@ class Transpiler
 	file(source_file)
 	{
 		fs.readFile(source_file, 'utf8', function(err, source) {
-			(new File(source_file, source)).transpile()
+			const start = new Date
+			new File(source_file, source).transpile()
+			console.log('+', source_file, '(' + (new Date - start).toString() + 'ms)')
 		})
 	}
 

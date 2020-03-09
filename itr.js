@@ -14,5 +14,4 @@ console.log()
 const process    = require('process')
 const transpiler = require('./src/transpiler.js')
 
-//transpiler.files(process.argv.slice(2));
-transpiler.files(['examples/hello-world.itr'])
+transpiler.files(process.argv.slice(2));
