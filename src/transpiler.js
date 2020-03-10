@@ -18,9 +18,11 @@ class File
 		for (let keyword of chain) {
 			for (let variant in locals[keyword]) if (locals[keyword].hasOwnProperty(variant)) {
 				if (variant === '*') {
-					this.dest += locals[keyword][variant].code(chain.slice(1))
+					this.dest += locals[keyword][variant].code(chain.slice(1)) + '\n'
+					break keyword
 				}
 			}
+			this.dest += keyword + '\n'
 		}
 	}
 
@@ -31,7 +33,7 @@ class File
 
 	transpile()
 	{
-		if (!this.source.length) return
+		if (this.source === '') return
 
 		let char           = this.source[0]
 		let column         = 1
@@ -112,7 +114,7 @@ class File
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
-							dest += this.normalize(keyword) + ' = '
+							this.dest += this.normalize(keyword) + ' = '
 							locals[keyword] = {}
 							keyword = '';
 							index ++
@@ -125,8 +127,10 @@ class File
 				}
 
 				// next keyword
-				keywords.push(keyword)
-				keyword = ''
+				if (keyword !== '') {
+					keywords.push(keyword)
+					keyword = ''
+				}
 
 				index ++ ; if (index === length) break chain ; char = this.source[index]
 				while (' \n\r\t'.indexOf(char) >= 0) {
@@ -142,18 +146,18 @@ class File
 							break chain
 						}
 						index --
-						if (keyword.length) keyword += ' '
+						if (keyword !== '') keyword += ' '
 					}
 					index ++ ; if (index === length) break chain ; char = this.source[index]
 				}
 			}
 			//:chain
-			if (keyword.length) {
+			if (keyword !== '') {
 				console.error('! unknown keyword \'' + keyword + '\' at ' + this.source_file + ':' + keyword_line + ':' + keyword_column)
 				keywords.push(keyword)
 				keyword = '';
 			}
-			if (keywords.length) {
+			if (keywords !== '') {
 				console.debug('chain', keywords)
 				this.chain(keywords, locals)
 				keywords = []
@@ -162,7 +166,7 @@ class File
 		//:file
 		let dest_file = this.source_file + '.js'
 		fs.writeFile(dest_file, this.dest, (err) => { if (err) console.error('! could not save destination file', dest_file) })
-		console.debug('transpiled code = [\n' + this.dest + '\n]')
+		console.debug('transpiled code = [\n' + this.dest + ']')
 	}
 
 }
