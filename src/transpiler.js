@@ -5,14 +5,28 @@ const globals = require('./globals.js')
 class File
 {
 
-	source
-	source_file
-
 	constructor(source_file, source)
 	{
 		this.dest        = ''
 		this.source      = source
 		this.source_file = source_file
+	}
+
+	chain(chain, locals)
+	{
+		keyword:
+		for (let keyword of chain) {
+			for (let variant in locals[keyword]) if (locals[keyword].hasOwnProperty(variant)) {
+				if (variant === '*') {
+					this.dest += locals[keyword][variant].code(chain.slice(1))
+				}
+			}
+		}
+	}
+
+	normalize(keyword)
+	{
+		return keyword
 	}
 
 	transpile()
@@ -98,7 +112,10 @@ class File
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
+							dest += this.normalize(keyword) + ' = '
 							locals[keyword] = {}
+							keyword = '';
+							index ++
 							break keyword
 						}
 					}
@@ -138,10 +155,14 @@ class File
 			}
 			if (keywords.length) {
 				console.debug('chain', keywords)
+				this.chain(keywords, locals)
 				keywords = []
 			}
 		}
 		//:file
+		let dest_file = this.source_file + '.js'
+		fs.writeFile(dest_file, this.dest, (err) => { if (err) console.error('! could not save destination file', dest_file) })
+		console.debug('transpiled code = [\n' + this.dest + '\n]')
 	}
 
 }
@@ -157,12 +178,21 @@ class Instruction
 class Transpiler
 {
 
+	constructor()
+	{
+		this.files_count = 0
+	}
+
 	file(source_file)
 	{
-		fs.readFile(source_file, 'utf8', function(err, source) {
+		this.files_count ++
+		fs.readFile(source_file, 'utf8', (err, source) => {
 			const start = new Date
 			new File(source_file, source).transpile()
-			console.log('+', source_file, '(' + (new Date - start).toString() + 'ms)')
+			console.info('+', source_file, '(' + (new Date - start).toString() + 'ms)')
+			if (!--this.files_count) {
+				console.info()
+			}
 		})
 	}
 

@@ -6,6 +6,10 @@ Copyright (c) 2020 Baptiste Pillot
 
 - install node.js version 12+
 
-# Run
+# Transpile
 
 node itr.js examples/hello-world.itr
+
+# Run transpiled program
+
+node examples/hello-world.itr
