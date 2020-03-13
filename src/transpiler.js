@@ -28,24 +28,24 @@ class File
 
 	normalize(keyword)
 	{
-		return keyword
+		return ('@+-.0123456789'.indexOf(keyword[0]) < 0) ? keyword : ('$itr$["' + keyword + '"]')
 	}
 
 	transpile()
 	{
 		if (this.source === '') return
-
-		let char           = this.source[0]
-		let column         = 1
-		let indent         = 0
-		let index          = 0
-		let locals         = globals
-		let keywords       = []
-		let keyword        = ''
-		let keyword_column = 1
-		let keyword_line   = 1
-		let length         = this.source.length
-		let line           = 1
+		let char            = this.source[0]
+		let column          = 1
+		let indent          = 0
+		let index           = 0
+		let locals          = globals
+		let keywords        = []
+		let keyword         = ''
+		let keyword_column  = 1
+		let keyword_line    = 1
+		let length          = this.source.length
+		let line            = 1
+		let normalized_init = []
 
 		//file:
 		while (index < length) {
@@ -54,25 +54,8 @@ class File
 				keyword_column = column
 				keyword_line   = line
 
-				// numeric constant
-				if ('+-.0123456789'.indexOf(char) >= 0) {
-					let dots = 0
-					do {
-						if (char === '.') {
-							dots ++
-							if (dots > 1) {
-								console.error('! syntax error at ' + this.source_file + ':' + line + ':' + (column + keyword.length))
-							}
-						}
-						keyword += char
-						index ++ ; if (index === length) break chain ; char = this.source[index]
-					} while ('.0123456789'.indexOf(char) >= 0)
-					column += keyword.length + 1
-					console.debug('numeric', keyword)
-				}
-
 				// string constant
-				else if ((char === '"') || (char === "'")) {
+				if ((char === '"') || (char === "'")) {
 					let quote = char
 					do {
 						column ++
@@ -93,7 +76,7 @@ class File
 				// keyword
 				else {
 					keyword:
-					while (!locals.hasOwnProperty(keyword)) {
+					do {
 						if (char === ';') {
 							break chain
 						}
@@ -110,17 +93,27 @@ class File
 							}
 							keyword += ' '
 						}
-						if (char !== '\r') keyword += char
+						if ((' \t'.indexOf(char) >= 0) && !isNaN(keyword)) {
+							index ++ ; if (index === length) break chain ; char = this.source[index]
+							break keyword
+						}
+						else if (char !== '\r') keyword += char
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
-							this.dest += this.normalize(keyword) + ' = '
+							let normalized = this.normalize(keyword)
+							if ((normalized_init[indent] === undefined) && normalized.startsWith('$itr$[')) {
+								normalized_init[indent] = true
+								this.dest += 'let $itr$ = {}\n'
+							}
+							this.dest += normalized + ' = '
 							locals[keyword] = {}
 							keyword = '';
 							index ++
 							break keyword
 						}
 					}
+					while (!locals.hasOwnProperty(keyword))
 					//:keyword
 					index --
 					console.debug('keyword', keyword)
@@ -128,7 +121,7 @@ class File
 
 				// next keyword
 				if (keyword !== '') {
-					keywords.push(keyword)
+					keywords.push(locals.hasOwnProperty(keyword) ? this.normalize(keyword) : keyword)
 					keyword = ''
 				}
 

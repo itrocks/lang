@@ -11,8 +11,6 @@ console.log('Copyright (c) 2020 Baptiste Pillot')
 console.log('https://github.com/itrocks/lang')
 console.log()
 
-//--------------------------------------------------------------------------------------------------
-
 const process    = require('process')
 const transpiler = require('./src/transpiler.js')
 
