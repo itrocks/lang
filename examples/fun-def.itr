@@ -7,6 +7,8 @@ traditional_var: 101
 A variable
   on multiple lines: "A value
 on multiple lines"
+an \antislashed\n variable name: "an \\antislashed \\nvalue"
+var: "An \"antislashed\" string"
 
 print It's a "wild" world
 print 0th
@@ -14,3 +16,5 @@ print 1th
 print traditional_var
 print @crazy things
 print A variable on multiple lines
+print an \antislashed\n variable name
+print var

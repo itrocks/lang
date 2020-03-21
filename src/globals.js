@@ -1,13 +1,35 @@
 
 globals = {
 
-	'print': {
-		'*': {
-			code: function(args) { return 'console.log(' + args.join(', ') + ')' }
+	if: {
+		code: function(args) {
+			return 'if (' + this.chain(args, '') + ')'
+		},
+		stop: '}',
+		vars: {
+			then: {
+				args:   false,
+				breaks: true,
+				code:   function(args) {
+					delete this.locals.then
+					return '{'
+				}
+			},
+			else: {
+				args:   false,
+				breaks: true,
+				code:  function() {
+					delete this.locals.then
+					delete this.locals.else
+					return '}\nelse {'
+				}
+			},
 		}
 	},
 
-	'tell me': {}
+	print: function(args) {
+		return 'console.log(' + args.join(', ') + ')'
+	},
 
 }
 

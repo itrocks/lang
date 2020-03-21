@@ -1,0 +1,7 @@
+true: 1
+
+if true then
+  print 'ok'
+else
+  print 'no'
+print 'hello'
