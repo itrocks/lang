@@ -1,24 +1,24 @@
 
 globals = {
 
-	if: {
+	'if': {
 		code: function(args) {
 			return 'if (' + this.chain(args, '') + ')'
 		},
 		stop: '}',
 		vars: {
-			then: {
+			'then': {
 				args:   false,
 				breaks: true,
-				code:   function(args) {
+				code:   function() {
 					delete this.locals.then
 					return '{'
 				}
 			},
-			else: {
+			'else': {
 				args:   false,
 				breaks: true,
-				code:  function() {
+				code:   function() {
 					delete this.locals.then
 					delete this.locals.else
 					return '}\nelse {'
@@ -27,7 +27,7 @@ globals = {
 		}
 	},
 
-	print: function(args) {
+	'print': function(args) {
 		return 'console.log(' + args.join(', ') + ')'
 	},
 
