@@ -158,11 +158,13 @@ class File
 			}
 			//:chain
 			if (keyword !== '') {
-				console.error('! unknown keyword \'' + keyword + '\' at ' + this.source_file + ':' + keyword_line + ':' + keyword_column)
+				if (isNaN(keyword)) {
+					console.error('! unknown keyword \'' + keyword + '\' at ' + this.source_file + ':' + keyword_line + ':' + keyword_column)
+				}
 				keywords.push(keyword)
 				keyword = '';
 			}
-			if (keywords !== '') {
+			if (keywords.length) {
 				console.debug('chain', keywords)
 				this.chain(keywords, locals)
 				keywords = []
