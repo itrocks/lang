@@ -3,8 +3,10 @@ It's a "wild" world: 'Wild'
 0th: 28
 1th: 29
 traditional_var: 101
+@crazy things: "crazy"
 
 print It's a "wild" world
 print 0th
 print 1th
 print traditional_var
+print @crazy things

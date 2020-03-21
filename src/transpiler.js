@@ -41,6 +41,8 @@ class File
 	transpile()
 	{
 		if (this.source === '') return
+		this.source = this.source + '\n'
+
 		let char            = this.source[0]
 		let column          = 1
 		let indent          = 0
