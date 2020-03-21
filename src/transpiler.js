@@ -28,7 +28,14 @@ class File
 
 	normalize(keyword)
 	{
-		return ('@+-.0123456789'.indexOf(keyword[0]) < 0) ? keyword : ('$itr$["' + keyword + '"]')
+		return (
+				('@+-.0123456789'.indexOf(keyword[0]) < 0)
+				&& (keyword.indexOf(' ') < 0)
+				&& (keyword.indexOf('"') < 0)
+				&& (keyword.indexOf("'") < 0)
+			)
+			? keyword
+			: ('$itr$[\'' + keyword.replace("'", "\\'") + '\']')
 	}
 
 	transpile()
@@ -101,6 +108,7 @@ class File
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
+							console.debug('set', keyword)
 							let normalized = this.normalize(keyword)
 							if ((normalized_init[indent] === undefined) && normalized.startsWith('$itr$[')) {
 								normalized_init[indent] = true
@@ -116,7 +124,9 @@ class File
 					while (!locals.hasOwnProperty(keyword))
 					//:keyword
 					index --
-					console.debug('keyword', keyword)
+					if (keyword.length) {
+						console.debug('keyword', keyword)
+					}
 				}
 
 				// next keyword
@@ -162,14 +172,6 @@ class File
 		console.debug('transpiled code = [\n' + this.dest + ']')
 	}
 
-}
-
-class Instruction
-{
-	constructor(source)
-	{
-		this.source = source
-	}
 }
 
 class Transpiler
