@@ -4,9 +4,13 @@ It's a "wild" world: 'Wild'
 1th: 29
 traditional_var: 101
 @crazy things: "crazy"
+A variable
+  on multiple lines: "A value
+on multiple lines"
 
 print It's a "wild" world
 print 0th
 print 1th
 print traditional_var
 print @crazy things
+print A variable on multiple lines

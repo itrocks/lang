@@ -68,7 +68,7 @@ class File
 					let quote = char
 					do {
 						column ++
-						if (char === '\n') { column = 0 ; line ++ }
+						if (char === '\n') { char = '\\n' ; column = 0 ; line ++ }
 						keyword += char
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						if (char === '\\') {
