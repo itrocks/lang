@@ -31,6 +31,23 @@ globals = {
 		return 'console.log(' + args.join(', ') + ')'
 	},
 
+	'while': {
+		code: function(args) {
+			return 'while (' + this.chain(args, '') + ')'
+		},
+		stop: '}',
+		vars: {
+			'do': {
+				args:   false,
+				breaks: true,
+				code:   function() {
+					delete this.locals.do
+					return '{'
+				}
+			}
+		}
+	}
+
 }
 
 module.exports = globals

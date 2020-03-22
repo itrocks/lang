@@ -1,0 +1,3 @@
+var: 1
+while var do
+	var = 0
