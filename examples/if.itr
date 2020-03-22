@@ -15,3 +15,5 @@ then
   print "TRUE"
 else
   print "FALSE"
+if true then print "TRUE"
+if false then print "FALSE"

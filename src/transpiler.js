@@ -22,33 +22,35 @@ class File
 		let dest         = ''
 		let separator    = (inside === undefined) ? '\n' : inside
 
-		while (chain_indent < this.indents.length - 1) {
-			let indent = this.indents.pop()
-			if (indent) {
-				console.debug('! unindent', this.indents.length)
-				dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
+		if ((chain_indent <= this.indents.length -1) && (inside === undefined)) {
+			let indent
+			while (chain_indent < (this.indents.length - 1)) {
+				indent = this.indents.pop()
+				if (indent) {
+					console.debug('! unindent', this.indents.length)
+					dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
+				}
 			}
-		}
-		if (
-			(chain_indent === this.indents.length - 1)
-			&& (inside === undefined)
-			&& (!chain || chain[0])
-			&& (
-				!chain
-				|| (typeof chain[0] !== 'object')
-				|| (
-					(this.indents[this.indents.length - 1].name !== chain[0].name)
-					&& (
-						!this.indents[this.indents.length - 1].vars
-						|| !this.indents[this.indents.length - 1].vars.hasOwnProperty(chain[0].name)
-					)
-				)
-			)
-		) {
-			let indent = this.indents.pop()
+			indent = this.indents[this.indents.length - 1]
 			if (indent) {
-				console.debug('! unindent', this.indents.length)
-				dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + separator
+				if (
+					(!chain || chain[0])
+					&& (
+						!chain
+						|| (typeof chain[0] !== 'object')
+						|| !indent.vars.includes(chain[0].name)
+					)
+				) {
+					let indent = this.indents.pop()
+					if (indent) {
+						console.debug('! unindent', this.indents.length)
+						dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + '\n'
+					}
+				}
+				else if (chain && (typeof chain[0] === 'object')) {
+					console.debug('- REMOVE', chain[0].name)
+					indent.vars[indent.vars.indexOf(chain[0].name)] = undefined
+				}
 			}
 		}
 
@@ -193,7 +195,14 @@ class File
 						}
 						if (keyword.stop) {
 							console.debug('! indent', this.indent, 'stop', keyword)
-							this.indents[this.indent] = keyword
+							if (this.indents[this.indent]) {
+								let indent = this.indents[this.indent]
+								this.dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + '\n'
+							}
+							this.indents[this.indent] = {
+								stop: keyword.stop,
+								vars: keyword.vars ? [name].concat(Object.keys(keyword.vars)) : [name]
+							}
 						}
 						if (keyword.vars) {
 							this.locals = Object.assign(Object.create(this.locals), keyword.vars)
