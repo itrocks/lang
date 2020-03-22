@@ -1,6 +1,19 @@
 
 globals = {
 
+	'do': {
+		args: false,
+		code: function() {
+			return 'do {'
+		},
+		stop: '',
+		vars: {
+			'while': function(args) {
+				return '}\nwhile (' + this.chain(args, '') + ')'
+			}
+		}
+	},
+
 	'if': {
 		code: function(args) {
 			return 'if (' + this.chain(args, '') + ')'

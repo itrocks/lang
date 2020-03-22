@@ -57,7 +57,7 @@ class File
 		console.debug(':' + this.chain_column, 'chain', chain)
 		if (chain) for (let element of chain) {
 			if (typeof element === 'function') {
-				dest += element(chain.slice(1)) + separator
+				dest += element.call(this, chain.slice(1)) + separator
 				break
 			}
 			else if (element.code) {
@@ -193,7 +193,7 @@ class File
 						if (keyword.code) {
 							keyword.name = name
 						}
-						if (keyword.stop) {
+						if (keyword.stop !== undefined) {
 							console.debug('! indent', this.indent, 'stop', keyword)
 							if (this.indents[this.indent]) {
 								let indent = this.indents[this.indent]
