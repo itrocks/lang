@@ -1,7 +1,17 @@
+false: 0
 true: 1
 
 if true then
   print 'ok'
+  if false
+  then print 1
+  else print 2
 else
   print 'no'
-print 'hello'
+  if false then print 'NO' else print 'YES'
+print "something"
+if true
+then
+  print "TRUE"
+else
+  print "FALSE"

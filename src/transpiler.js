@@ -7,17 +7,53 @@ class File
 
 	constructor(source_file, source)
 	{
-		this.dest        = ''
-		this.locals      = Object.create(globals)
-		this.source      = source
-		this.source_file = source_file
+		this.chain_column = 1
+		this.dest         = ''
+		this.indent       = 0
+		this.indents      = []
+		this.locals       = Object.create(globals)
+		this.source       = source
+		this.source_file  = source_file
 	}
 
-	chain(chain, separator = '\n')
+	chain(chain, inside)
 	{
-		let dest = ''
-		console.debug('chain', chain)
-		for (let element of chain) {
+		let chain_indent = this.chain_column - 1
+		let dest         = ''
+		let separator    = (inside === undefined) ? '\n' : inside
+
+		while (chain_indent < this.indents.length - 1) {
+			let indent = this.indents.pop()
+			if (indent) {
+				console.debug('! unindent', this.indents.length)
+				dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
+			}
+		}
+		if (
+			(chain_indent === this.indents.length - 1)
+			&& (inside === undefined)
+			&& (!chain || chain[0])
+			&& (
+				!chain
+				|| (typeof chain[0] !== 'object')
+				|| (
+					(this.indents[this.indents.length - 1].name !== chain[0].name)
+					&& (
+						!this.indents[this.indents.length - 1].vars
+						|| !this.indents[this.indents.length - 1].vars.hasOwnProperty(chain[0].name)
+					)
+				)
+			)
+		) {
+			let indent = this.indents.pop()
+			if (indent) {
+				console.debug('! unindent', this.indents.length)
+				dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + separator
+			}
+		}
+
+		console.debug(':' + this.chain_column, 'chain', chain)
+		if (chain) for (let element of chain) {
 			if (typeof element === 'function') {
 				dest += element(chain.slice(1)) + separator
 				break
@@ -46,14 +82,12 @@ class File
 	transpile()
 	{
 		if (this.source === '') return
-		this.source = this.source + '\n'
+		this.source += '\n'
 
 		let break_chain     = false
 		let chain           = []
 		let char            = this.source[0]
 		let column          = 1
-		let indent          = 0
-		let indents         = []
 		let index           = 0
 		let keyword         = ''
 		let keyword_column  = 1
@@ -87,7 +121,7 @@ class File
 					} while (char !== quote)
 					column ++
 					keyword += char
-					console.debug('string', keyword)
+					console.debug(':' + line + ':' + keyword_column, 'string', keyword)
 				}
 
 				// keyword
@@ -105,9 +139,8 @@ class File
 								column ++
 								index ++ ; if (index === length) break chain ; char = this.source[index]
 							} while (' \t'.includes(char))
-							if ((index - index_save) <= indent) {
+							if ((index - index_save) <= this.indent) {
 								next_indent = index - index_save
-								console.debug('indent-', next_indent, 'A')
 								break chain
 							}
 							keyword += ' '
@@ -120,10 +153,10 @@ class File
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
-							//console.debug('set', keyword)
+							console.debug(':' + line + ':' + keyword_column, 'set', keyword)
 							let normalized = this.normalize(keyword)
-							if (!normalized_init[indent] && normalized.startsWith('$itr$[')) {
-								normalized_init[indent] = true
+							if (!normalized_init[this.indent] && normalized.startsWith('$itr$[')) {
+								normalized_init[this.indent] = true
 								this.dest += 'let $itr$ = {}\n'
 							}
 							this.dest += normalized + ' = '
@@ -136,24 +169,31 @@ class File
 					//:keyword
 					index --
 					if (keyword.length) {
-						console.debug('keyword', keyword)
+						console.debug(':' + line + ':' + keyword_column, 'keyword', keyword)
 					}
 				}
 
 				// next keyword
 				if (keyword !== '') {
 					if (this.locals[keyword]) {
-						keyword = this.locals[keyword]
+						let name = keyword
+						keyword  = this.locals[keyword]
 						if (keyword.args === false) {
 							break_chain = true
 						}
 						if (keyword.breaks) {
+							console.debug('breaks')
 							this.dest += this.chain(chain)
 							chain      = []
+							this.chain_column = column
+						}
+
+						if (keyword.code) {
+							keyword.name = name
 						}
 						if (keyword.stop) {
-							console.debug('! indent', indent, 'stop', keyword)
-							indents[indent] = keyword
+							console.debug('! indent', this.indent, 'stop', keyword)
+							this.indents[this.indent] = keyword
 						}
 						if (keyword.vars) {
 							this.locals = Object.assign(Object.create(this.locals), keyword.vars)
@@ -174,9 +214,8 @@ class File
 							index ++ ; if (index === length) break chain ; char = this.source[index]
 						} while (' \t'.includes(char))
 						next_indent = column - 1
-						if ((index - index_save) <= indent) {
+						if ((index - index_save) <= this.indent) {
 							next_indent = index - index_save
-							console.debug('indent-', next_indent, 'B')
 							break chain
 						}
 						index --
@@ -199,18 +238,21 @@ class File
 			}
 			if (chain.length) {
 				this.dest += this.chain(chain)
+				this.chain_column = column
 				chain = []
 			}
-			if ((next_indent > -1) && (next_indent < indent)) {
-				console.debug('indent-', next_indent, 'C')
-				indent = next_indent
+			if ((next_indent > -1) && (next_indent < this.indent)) {
+				console.debug('indent-', next_indent)
+				this.indent = next_indent
 			}
-			else if (next_indent > indent) {
+			else if (next_indent > this.indent) {
 				console.debug('indent+', next_indent)
-				indent = next_indent
+				this.indent = next_indent
 			}
 		}
 		//:file
+		this.dest += this.chain()
+
 		let dest_file = this.source_file + '.js'
 		fs.writeFile(dest_file, this.dest, (err) => {
 			if (err) console.error('! could not save destination file', dest_file)
