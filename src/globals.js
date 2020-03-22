@@ -2,26 +2,26 @@
 globals = {
 
 	'do': {
-		args: false,
+		args: [],
 		code: function() {
 			return 'do {'
 		},
 		stop: '',
 		vars: {
-			'while': function(args) {
-				return '}\nwhile (' + this.chain(args, '') + ')'
+			'while': function(chain) {
+				return '}\nwhile (' + this.chain(chain, '') + ')'
 			}
 		}
 	},
 
 	'if': {
-		code: function(args) {
-			return 'if (' + this.chain(args, '') + ')'
+		code: function(chain) {
+			return 'if (' + this.chain(chain, '') + ')'
 		},
 		stop: '}',
 		vars: {
 			'then': {
-				args:   false,
+				args:   [],
 				breaks: true,
 				code:   function() {
 					delete this.locals.then
@@ -29,7 +29,7 @@ globals = {
 				}
 			},
 			'else': {
-				args:   false,
+				args:   [],
 				breaks: true,
 				code:   function() {
 					delete this.locals.then
@@ -40,18 +40,18 @@ globals = {
 		}
 	},
 
-	'print': function(args) {
-		return 'console.log(' + args.join(', ') + ')'
+	'print': function(chain) {
+		return 'console.log(' + chain.join(', ') + ')'
 	},
 
 	'while': {
-		code: function(args) {
-			return 'while (' + this.chain(args, '') + ')'
+		code: function(chain) {
+			return 'while (' + this.chain(chain, '') + ')'
 		},
 		stop: '}',
 		vars: {
 			'do': {
-				args:   false,
+				args:   [],
 				breaks: true,
 				code:   function() {
 					delete this.locals.do

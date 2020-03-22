@@ -26,6 +26,7 @@ class File
 			let indent
 			while (chain_indent < (this.indents.length - 1)) {
 				indent = this.indents.pop()
+				if (!indent) continue
 				if (indent.vars) {
 					console.debug('! unindent', this.indents.length)
 					dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
@@ -79,8 +80,8 @@ class File
 
 	normalize(keyword)
 	{
-		for (let c of keyword) {
-			if ('.@-+ "\'\\'.includes(c)) {
+		for (let char of keyword) {
+			if ('.@-+ "\'\\'.includes(char)) {
 				return '$itr$[\'' + keyword.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\']'
 			}
 		}
@@ -147,10 +148,7 @@ class File
 								column ++
 								index ++ ; if (index === length) break chain ; char = this.source[index]
 							} while (' \t'.includes(char))
-							if ((index - index_save) <= this.indent) {
-								next_indent = index - index_save
-								break chain
-							}
+							if ((index - index_save) <= this.indent) { next_indent = index - index_save ; break chain }
 							keyword += ' '
 						}
 						if (' \t'.includes(char) && !isNaN(keyword)) {
@@ -163,11 +161,16 @@ class File
 						if (char === ':') {
 							console.debug(':' + line + ':' + keyword_column, 'set', keyword)
 							let normalized = this.normalize(keyword)
-							if (!normalized_init[this.indent] && normalized.startsWith('$itr$[')) {
-								normalized_init[this.indent] = true
-								this.dest += 'let $itr$ = {}\n'
+							if (normalized.startsWith('$itr$[')) {
+								if (!normalized_init[this.indent]) {
+									normalized_init[this.indent] = true
+									this.dest += 'let $itr$ = {}\n'
+								}
 							}
-							this.dest += 'let ' + normalized + ' = '
+							else {
+								this.dest += 'let '
+							}
+							this.dest += normalized + ' = '
 							this.locals[keyword] = normalized
 							keyword = '';
 							index ++
@@ -186,7 +189,7 @@ class File
 					if (this.locals[keyword]) {
 						let name = keyword
 						keyword  = this.locals[keyword]
-						if (keyword.args === false) {
+						if (keyword.args && !keyword.args.length) {
 							break_chain = true
 						}
 						if (keyword.breaks) {
@@ -234,10 +237,7 @@ class File
 							index ++ ; if (index === length) break chain ; char = this.source[index]
 						} while (' \t'.includes(char))
 						next_indent = column - 1
-						if ((index - index_save) <= this.indent) {
-							next_indent = index - index_save
-							break chain
-						}
+						if ((index - index_save) <= this.indent) { next_indent = index - index_save ; break chain }
 						index --
 						if (keyword !== '') keyword += ' '
 					}
