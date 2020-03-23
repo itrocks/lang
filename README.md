@@ -4,12 +4,31 @@ Copyright (c) 2020 Baptiste Pillot
 
 # Pre-requisites
 
-- install node.js version 12+
+- Install node.js version 12+ : it is needed for both transpile or run your program.
+- The node executable must be accessible from your command line PATH variable.
 
 # Transpile
 
-node itr.js examples/hello-world.itr
+From your node installation directory, containing the current README file and launcher scripts.
+
+Linux :
+```bash
+./itr examples/hello-world.itr
+```
+
+Windows :
+```batch
+itr examples\hello-world.itr
+```
 
 # Run transpiled program
 
-node examples/hello-world.itr
+Linux :
+```bash
+examples/hello-world
+```
+
+Windows :
+```batch
+examples\hello-world
+```
