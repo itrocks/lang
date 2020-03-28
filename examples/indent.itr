@@ -1,6 +1,0 @@
-print 18
-print "a"
-  'b'
-    "c"
-  'd'
-print "z"

@@ -7,4 +7,4 @@ while var == 0
 condition: 5
 while condition do
   print condition
-  condition = condition - 1
+  condition --

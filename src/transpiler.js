@@ -272,12 +272,9 @@ class File
 		}
 		//:file
 		this.dest += this.chain()
-
-		let dest_file = this.source_file + '.js'
-		fs.writeFile(dest_file, this.dest, (err) => {
-			if (err) console.error('! could not save destination file', dest_file)
-		})
 		console.debug('transpiled code = [\n' + this.dest + ']')
+
+		return this.dest
 	}
 
 }
@@ -288,6 +285,7 @@ class Transpiler
 	constructor()
 	{
 		this.files_count = 0
+		this.File        = File
 	}
 
 	file(source_file)
@@ -295,7 +293,12 @@ class Transpiler
 		this.files_count ++
 		fs.readFile(source_file, 'utf8', (err, source) => {
 			const start = new Date
-			new File(source_file, source).transpile()
+
+			let dest_file = source_file + '.js'
+			fs.writeFile(dest_file, new File(source_file, source).transpile(), (err) => {
+				if (err) console.error('! could not save destination file', dest_file)
+			})
+
 			console.info('+', source_file, '(' + (new Date - start).toString() + 'ms)')
 			if (!--this.files_count) {
 				console.info()
