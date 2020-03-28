@@ -14,9 +14,9 @@ const launcher   = require('./launcher.js')
 const transpiler = require('./transpiler.js')
 
 // run unit tests
-if (process.argv.indexOf('test') > -1) {
-	const test = require('./test.js')
-	test.run()
+if ((process.argv.indexOf('test') > -1) || (process.argv.indexOf('tests') > -1)) {
+	const tests = require('./tests.js')
+	tests.run()
 	return
 }
 

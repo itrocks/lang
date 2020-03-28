@@ -9,7 +9,7 @@ Copyright (c) 2020 Baptiste Pillot
 
 # Run unit tests
 
-Check if your version if the it.rocks language transpiler is sane :
+Check if your version of the it.rocks language transpiler is sane :
 
 Linux :
 ```bash
