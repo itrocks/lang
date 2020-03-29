@@ -62,20 +62,24 @@ class File
 		}
 
 		console.debug(':' + this.chain_column, 'chain', chain)
-		if (chain) for (let element of chain) {
-			if (typeof element === 'function') {
-				dest += element.call(this, chain.slice(1)) + separator
-				break
+		if (!chain || !chain.length) return dest
+		let element_priority
+		let index           = 0
+		let lowest_element  = chain[0]
+		let lowest_index    = 0
+		let lowest_priority = Number.MAX_SAFE_INTEGER
+		for (let element of chain) {
+			element_priority = element.priority ? element.priority : 1000
+			if ((element_priority < lowest_priority) && ((typeof element === 'function') || element.code)) {
+				lowest_element  = element
+				lowest_index    = index
+				lowest_priority = element_priority
 			}
-			else if (element.code) {
-				dest += element.code.call(this, chain.slice(1)) + separator
-				break
-			}
-			else {
-				dest += element + separator
-			}
+			index ++
 		}
-		return dest
+		if (typeof lowest_element === 'function') return dest + lowest_element.call(this, chain, lowest_index) + separator
+		if (lowest_element.code) return dest + lowest_element.code.call(this, chain, lowest_index) + separator
+		return dest + lowest_element + separator
 	}
 
 	normalize(keyword)

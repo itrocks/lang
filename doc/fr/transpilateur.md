@@ -302,6 +302,16 @@ Un élément d'une chaîne de mots-clés (`chain`).
 Equivalent de `keyword`, dans un contexte de décodage de la chaîne de mots-clés.
 Voir `keyword`.
 
+### element_priority
+```
+element_priority: integer
+```
+
+La priorité de l'élément courant (`chain`) de la chaîne de mots-clés (`chain`).
+
+Pendant le traitement d'une chaîne, on recherche l'élément de priorité la plus basse.
+C'est la fonction / l'opérateur qui sera traité en premier.
+
 ### File
 ```
 File:
@@ -387,7 +397,14 @@ Voir aussi :
 
 ### index
 ```
-index: integer
+File.chain.index: integer
+```
+
+Position de l'élément courant (`element`) dans la chaîne de mots-clés (`chain`).
+
+### index
+```
+File.index: integer
 ```
 
 Position du dernier caractère lu dans le code source (`source`).
@@ -545,6 +562,30 @@ Utilisation :
 - Dès qu'un mot-clé (`keyword`) variable est identifié, le transpilateur vérifie qu'il est bien défini dans les
   variables visibles localement. Un message **! Unknown keyword** est sorti par le transpilateur le cas échéant.
 
+### lowest_element
+```
+File.chain.lowest_element: Keyword
+```
+
+L'élément dans la chaîne (`chain`) qui a la plus basse priorité. C'est ce mot-clé qui sera traité. 
+
+### lowest_index
+```
+File.chain.lowest_index: integer
+```
+
+L'index dans la chaîne (`chain`)  de l'élément qui a la plus basse priorité. Cet index est envoyé à la fonction de
+génération du code (`code`) de l'élément correspondant.
+
+### lowest_priority
+```
+File.chain.lowest_priority: integer
+```
+
+Priorité de l'élément qui a plus basse priorité dans la chaîne (`chain`).
+Mémorisée le temps de la boucle de recherche de l'élément à plus basse priorité :
+comparée à la priorité de l'élément courant (`element`), elle permet de le remplacer si plus basse.
+
 ### name
 ```
 Keyword.name: string
@@ -614,6 +655,22 @@ Mémorise si la variable réservée `$itr$` a déjà été initialisée dans le 
 pour chaque niveau d'indentation.
 - La clé est le niveau d'indentation à vérifier.
 - La valeur est `true` si la variable a été initialisée. Sinon l'élément est indéfini (`undefined`).
+
+### priority
+```
+priority: integer
+```
+
+Priorité de la fonction / l'opérateur représenté par le variable (`Variable`) de type fonction (`Function`).
+
+Définition :
+- Chaque fonction a une priorité. Si aucune n'est déclarée, la priorité par défaut est 1000.
+
+Utilisation :
+- La priorité permet de savoir quelle fonction doit être exécutée, quand une chaîne de mots-clés (`chain`) constituant
+une instruction qui comporterait plusieurs variables représentant des fonctions.
+- Si plusieurs fonctions de même priorité sont présentes dans la même instruction, la première fonction en partant de
+la gauche sera traitée.
 
 ### quote
 ```

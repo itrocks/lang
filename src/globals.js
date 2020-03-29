@@ -1,6 +1,13 @@
 
 globals = {
 
+	'=': {
+		code: function(chain, index) {
+			return this.chain(chain.slice(0, index), '') + ' = ' + this.chain(chain.slice(index + 1), '')
+		},
+		priority: 100
+	},
+
 	'do': {
 		args: [],
 		code: function() {
@@ -16,7 +23,7 @@ globals = {
 
 	'if': {
 		code: function(chain) {
-			return 'if (' + this.chain(chain, '') + ')'
+			return 'if (' + this.chain(chain.slice(1), '') + ')'
 		},
 		stop: '}',
 		vars: {
@@ -41,12 +48,12 @@ globals = {
 	},
 
 	'print': function(chain) {
-		return 'console.log(' + chain.join(', ') + ')'
+		return 'console.log(' + chain.slice(1).join(', ') + ')'
 	},
 
 	'while': {
 		code: function(chain) {
-			return 'while (' + this.chain(chain, '') + ')'
+			return 'while (' + this.chain(chain.slice(1), '') + ')'
 		},
 		stop: '}',
 		vars: {
