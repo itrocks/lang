@@ -115,6 +115,7 @@ class File
 		let keyword         = ''
 		let keyword_column  = 1
 		let keyword_line    = 1
+		let last_keyword    = ''
 		let length          = this.source.length
 		let line            = 1
 		let normalized_init = []
@@ -204,6 +205,11 @@ class File
 
 				// next keyword
 				if (keyword !== '') {
+					if (this.locals[last_keyword + keyword]) {
+						keyword = last_keyword + keyword
+						chain.pop()
+					}
+					last_keyword = keyword
 					if (this.locals[keyword]) {
 						let name = keyword
 						keyword  = this.locals[keyword]

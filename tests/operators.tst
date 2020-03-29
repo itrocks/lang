@@ -23,9 +23,9 @@ $c = 1 > 2
 console.log($c)
 $c = 1 >= 2
 console.log($c)
-$c = 1 == 2
+$c = 1 === 2
 console.log($c)
-$c = 1 != 2
+$c = 1 !== 2
 console.log($c)
 -----
 true
