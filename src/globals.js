@@ -5,16 +5,51 @@ let equality = function(chain, index) {
 let operator = function(chain, index) {
 	return this.chain(chain.slice(0, index), '') + ' ' + chain[index].name + ' ' + this.chain(chain.slice(index + 1), '')
 }
+let unary = function(chain) {
+	return chain[0] + this.chain(chain.slice(1), '')
+}
 
 globals = {
 
-	'=':  { code: operator, priority: 100 },
-	'>':  { code: operator, priority: 500 },
-	'<':  { code: operator, priority: 500 },
-	'>=': { code: operator, priority: 500 },
-	'<=': { code: operator, priority: 500 },
-	'==': { code: equality, priority: 500 },
-	'!=': { code: equality, priority: 500 },
+	'=':    { code: operator },
+	'+=':   { code: operator },
+	'-=':   { code: operator },
+	'*=':   { code: operator },
+	'/=':   { code: operator },
+	'%=':   { code: operator },
+	'**=':  { code: operator },
+	'&=':   { code: operator },
+	'|=':   { code: operator },
+	'^=':   { code: operator },
+	'<<=':  { code: operator },
+	'>>=':  { code: operator },
+	'>>>=': { code: operator },
+
+	'||':   { code: operator },
+	'&&':   { code: operator },
+
+	'>':    { code: operator },
+	'<':    { code: operator },
+	'>=':   { code: operator },
+	'<=':   { code: operator },
+	'==':   { code: equality },
+	'!=':   { code: equality },
+
+	'!':    { code: unary },
+	'~':    { code: unary },
+
+	'+':    { code: operator },
+	'-':    { code: operator },
+	'*':    { code: operator },
+	'/':    { code: operator },
+	'%':    { code: operator },
+	'**':   { code: operator },
+	'&':    { code: operator },
+	'|':    { code: operator },
+	'^':    { code: operator },
+	'<<':   { code: operator },
+	'>>':   { code: operator },
+	'>>>':  { code: operator },
 
 	'do': {
 		args: [],
