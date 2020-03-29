@@ -1,12 +1,20 @@
 
+let equality = function(chain, index) {
+	return this.chain(chain.slice(0, index), '') + ' ' + chain[index].name + '= ' + this.chain(chain.slice(index + 1), '')
+}
+let operator = function(chain, index) {
+	return this.chain(chain.slice(0, index), '') + ' ' + chain[index].name + ' ' + this.chain(chain.slice(index + 1), '')
+}
+
 globals = {
 
-	'=': {
-		code: function(chain, index) {
-			return this.chain(chain.slice(0, index), '') + ' = ' + this.chain(chain.slice(index + 1), '')
-		},
-		priority: 100
-	},
+	'=':  { code: operator, priority: 100 },
+	'>':  { code: operator, priority: 500 },
+	'<':  { code: operator, priority: 500 },
+	'>=': { code: operator, priority: 500 },
+	'<=': { code: operator, priority: 500 },
+	'==': { code: equality, priority: 500 },
+	'!=': { code: equality, priority: 500 },
 
 	'do': {
 		args: [],
@@ -47,8 +55,10 @@ globals = {
 		}
 	},
 
-	'print': function(chain) {
-		return 'console.log(' + chain.slice(1).join(', ') + ')'
+	'print': {
+		code: function(chain) {
+			return 'console.log(' + this.chain(chain.slice(1), '') + ')'
+		}
 	},
 
 	'while': {
@@ -69,5 +79,7 @@ globals = {
 	}
 
 }
+
+for (let name in globals) globals[name].name = name
 
 module.exports = globals

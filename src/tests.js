@@ -10,6 +10,7 @@ class Tests
 		console.log('it.rocks unit test session')
 		fs.readdir('tests', function(err, filenames) {
 			for (let filename of filenames) {
+				if (!filename.endsWith('.tst')) continue
 				fs.readFile('tests/' + filename, 'utf8', function(err, data) {
 					let await_javascript, await_output, itrocks, javascript
 					[itrocks, await_javascript, await_output] = data.split('\n-----')

@@ -22,7 +22,7 @@ class File
 		let dest         = ''
 		let separator    = (inside === undefined) ? '\n' : inside
 
-		if ((chain_indent <= this.indents.length -1) && (inside === undefined)) {
+		if ((inside === undefined) && (chain_indent <= this.indents.length -1)) {
 			let indent
 			while (chain_indent < (this.indents.length - 1)) {
 				indent = this.indents.pop()
@@ -70,16 +70,26 @@ class File
 		let lowest_priority = Number.MAX_SAFE_INTEGER
 		for (let element of chain) {
 			element_priority = element.priority ? element.priority : 1000
-			if ((element_priority < lowest_priority) && ((typeof element === 'function') || element.code)) {
+			if (element.code && (element_priority < lowest_priority)) {
 				lowest_element  = element
 				lowest_index    = index
 				lowest_priority = element_priority
 			}
 			index ++
 		}
-		if (typeof lowest_element === 'function') return dest + lowest_element.call(this, chain, lowest_index) + separator
-		if (lowest_element.code) return dest + lowest_element.code.call(this, chain, lowest_index) + separator
-		return dest + lowest_element + separator
+
+		if (lowest_element.code) {
+			return dest + lowest_element.code.call(this, chain, lowest_index) + separator
+		}
+		if (chain.length === 1) {
+			return dest + ((lowest_element.name === undefined) ? lowest_element : lowest_element.name) + separator
+		}
+
+		let result = (dest === '' ? [] : [dest])
+		for (let element of chain) {
+			result.push((element.name === undefined) ? element : element.name)
+		}
+		return dest + result.join(', ') + separator
 	}
 
 	normalize(keyword)
@@ -95,7 +105,7 @@ class File
 	transpile()
 	{
 		if (this.source === '') return
-		this.source += '\n'
+		this.source = this.source.replace(/\r/g, '') + '\n'
 
 		let break_chain     = false
 		let chain           = []
@@ -159,7 +169,9 @@ class File
 							index ++ ; if (index === length) break chain ; char = this.source[index]
 							break keyword
 						}
-						else if (char !== '\r') keyword += char
+						else {
+							keyword += char
+						}
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
@@ -175,7 +187,9 @@ class File
 								this.dest += 'let '
 							}
 							this.dest += normalized + ' = '
-							this.locals[keyword] = normalized
+							this.locals[keyword] = {
+								name: normalized
+							}
 							keyword = '';
 							index ++
 							break keyword
@@ -203,9 +217,6 @@ class File
 							this.chain_column = column
 						}
 
-						if (keyword.code) {
-							keyword.name = name
-						}
 						if (keyword.stop !== undefined) {
 							console.debug('! indent', this.indent, 'stop', keyword)
 							if (this.indents[this.indent]) {
@@ -231,7 +242,7 @@ class File
 				}
 
 				index ++ ; if (index === length) break chain ; char = this.source[index]
-				while (' \n\r\t'.includes(char)) {
+				while (' \n\t'.includes(char)) {
 					column ++
 					if (char === '\n') {
 						column = 0 ; line ++
