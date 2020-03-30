@@ -2,9 +2,11 @@
 const fs      = require('fs')
 const globals = require('./globals.js')
 
+//================================================================================================================ File
 class File
 {
 
+	//------------------------------------------------------------------------------------------------------- constructor
 	constructor(source_file, source)
 	{
 		this.chain_column = 1
@@ -16,50 +18,11 @@ class File
 		this.source_file  = source_file
 	}
 
+	//------------------------------------------------------------------------------------------------------------- chain
 	chain(chain, inside)
 	{
-		let chain_indent = this.chain_column - 1
-		let dest         = ''
-		let separator    = (inside === undefined) ? '\n' : inside
-
-		if ((inside === undefined) && (chain_indent <= this.indents.length -1)) {
-			let indent
-			while (chain_indent < (this.indents.length - 1)) {
-				indent = this.indents.pop()
-				if (!indent) continue
-				if (indent.vars) {
-					console.debug('! unindent', this.indents.length)
-					dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
-				}
-				if (indent.locals) {
-					this.locals = Object.getPrototypeOf(this.locals)
-				}
-			}
-			indent = this.indents[this.indents.length - 1]
-			if (indent) {
-				if (
-					(!chain || chain[0])
-					&& (
-						!chain
-						|| (typeof chain[0] !== 'object')
-						|| !indent.vars.includes(chain[0].name)
-					)
-				) {
-					let indent = this.indents.pop()
-					if (indent.vars) {
-						console.debug('! unindent', this.indents.length)
-						dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + '\n'
-					}
-					if (indent.locals) {
-						this.locals = Object.getPrototypeOf(this.locals)
-					}
-				}
-				else if (chain && (typeof chain[0] === 'object')) {
-					console.debug('- REMOVE', chain[0].name)
-					indent.vars[indent.vars.indexOf(chain[0].name)] = undefined
-				}
-			}
-		}
+		let dest, separator
+		[dest, separator] = (inside === undefined) ? [this.unindent(chain), '\n'] : ['', inside]
 
 		console.debug(':' + this.chain_column, 'chain', chain)
 		if (!chain || !chain.length) return dest
@@ -92,6 +55,7 @@ class File
 		return dest + result.join(', ') + separator
 	}
 
+	//--------------------------------------------------------------------------------------------------------- normalize
 	normalize(keyword)
 	{
 		for (let char of keyword) {
@@ -102,6 +66,7 @@ class File
 		return '$' + keyword
 	}
 
+	//--------------------------------------------------------------------------------------------------------- transpile
 	transpile()
 	{
 		if (this.source === '') return
@@ -176,6 +141,7 @@ class File
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if (char === ':') {
+							this.dest += this.unindent()
 							console.debug(':' + line + ':' + keyword_column, 'set', keyword)
 							let normalized = this.normalize(keyword)
 							if (normalized.startsWith('$itr$[')) {
@@ -298,17 +264,67 @@ class File
 		return this.dest
 	}
 
+	//---------------------------------------------------------------------------------------------------------- unindent
+	unindent(chain)
+	{
+		let chain_indent = this.chain_column - 1
+		if (chain_indent >= this.indents.length) {
+			return ''
+		}
+		let dest = ''
+		let indent
+		while (chain_indent < (this.indents.length - 1)) {
+			indent = this.indents.pop()
+			if (!indent) continue
+			if (indent.vars) {
+				console.debug('! unindent', this.indents.length)
+				dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
+			}
+			if (indent.locals) {
+				this.locals = Object.getPrototypeOf(this.locals)
+			}
+		}
+		indent = this.indents[this.indents.length - 1]
+		if (indent) {
+			if (
+				(!chain || chain[0])
+				&& (
+					!chain
+					|| (typeof chain[0] !== 'object')
+					|| !indent.vars.includes(chain[0].name)
+				)
+			) {
+				let indent = this.indents.pop()
+				if (indent.vars) {
+					console.debug('! unindent', this.indents.length)
+					dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + '\n'
+				}
+				if (indent.locals) {
+					this.locals = Object.getPrototypeOf(this.locals)
+				}
+			}
+			else if (chain && (typeof chain[0] === 'object')) {
+				console.debug('- REMOVE', chain[0].name)
+				indent.vars[indent.vars.indexOf(chain[0].name)] = undefined
+			}
+		}
+		return dest
+	}
+
 }
 
+//========================================================================================================== Transpiler
 class Transpiler
 {
 
+	//------------------------------------------------------------------------------------------------------- constructor
 	constructor()
 	{
 		this.files_count = 0
 		this.File        = File
 	}
 
+	//-------------------------------------------------------------------------------------------------------------- file
 	file(source_file)
 	{
 		this.files_count ++
@@ -327,6 +343,7 @@ class Transpiler
 		})
 	}
 
+	//------------------------------------------------------------------------------------------------------------- files
 	files(source_files)
 	{
 		for (let source_file of source_files) {

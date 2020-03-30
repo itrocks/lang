@@ -58,8 +58,10 @@ globals = {
 		},
 		stop: '',
 		vars: {
-			'while': function(chain) {
-				return '}\nwhile (' + this.chain(chain, '') + ')'
+			'while': {
+				code: function(chain) {
+					return '} while (' + this.chain(chain.slice(1), '') + ')'
+				}
 			}
 		}
 	},
@@ -96,6 +98,21 @@ globals = {
 		}
 	},
 
+	'repeat': {
+		args: [],
+		code: function() {
+			return 'do {'
+		},
+		stop: '',
+		vars: {
+			'until': {
+				code: function(chain) {
+					return '} while (!(' + this.chain(chain.slice(1), '') + '))'
+				}
+			}
+		}
+	},
+
 	'while': {
 		code: function(chain) {
 			return 'while (' + this.chain(chain.slice(1), '') + ')'
@@ -115,6 +132,14 @@ globals = {
 
 }
 
-for (let name in globals) globals[name].name = name
+let setNames = function(locals)
+{
+	for (let name in locals) if (locals.hasOwnProperty(name)) {
+		let local = locals[name]
+		local.name = name
+		if (local.vars) setNames(local.vars)
+	}
+}
+setNames(globals)
 
 module.exports = globals
