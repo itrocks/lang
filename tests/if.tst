@@ -29,7 +29,8 @@ console.log(1)
 }
 else {
 console.log(2)
-}}
+}
+}
 else {
 console.log('no')
 if ($false)
@@ -38,7 +39,8 @@ console.log('NO')
 }
 else {
 console.log('YES')
-}}
+}
+}
 console.log("something")
 if ($true)
 {

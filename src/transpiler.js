@@ -9,13 +9,14 @@ class File
 	//------------------------------------------------------------------------------------------------------- constructor
 	constructor(source_file, source)
 	{
-		this.chain_column = 1
-		this.dest         = ''
-		this.indent       = 0
-		this.indents      = []
-		this.locals       = Object.create(globals)
-		this.source       = source
-		this.source_file  = source_file
+		this.chain_column    = 1
+		this.dest            = ''
+		this.indent          = 0
+		this.indents         = []
+		this.locals          = Object.create(globals)
+		this.normalized_init = []
+		this.source          = source
+		this.source_file     = source_file
 	}
 
 	//------------------------------------------------------------------------------------------------------------- chain
@@ -74,17 +75,18 @@ class File
 
 		let break_chain     = false
 		let chain           = []
+		let chain_index     = 0
 		let char            = this.source[0]
 		let column          = 1
 		let index           = 0
 		let interrogation   = false
 		let keyword         = ''
 		let keyword_column  = 1
+		let keyword_index   = 0
 		let keyword_line    = 1
 		let last_keyword    = ''
 		let length          = this.source.length
 		let line            = 1
-		let normalized_init = []
 
 		//file:
 		while (index < length) {
@@ -92,6 +94,7 @@ class File
 			chain:
 			while (true) {
 				keyword_column = column
+				keyword_index  = index
 				keyword_line   = line
 
 				// string constant
@@ -143,13 +146,19 @@ class File
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
 						if ((char === ':') && !interrogation) {
+							if (chain.length) {
+								chain   = []
+								keyword = this.source.substr(chain_index, index - chain_index)
+							}
 							this.dest += this.unindent()
 							console.debug(':' + line + ':' + keyword_column, 'set', keyword)
 							let normalized = this.normalize(keyword)
 							if (normalized.startsWith('$itr$[')) {
-								if (!normalized_init[this.indent]) {
-									normalized_init[this.indent] = true
-									this.dest += 'let $itr$ = {}\n'
+								if (!this.normalized_init[this.indent]) {
+									this.dest += this.normalized_init.includes(true)
+										? '$itr$ = Object.create($itr$)\n'
+										: 'let $itr$ = {}\n'
+									this.normalized_init[this.indent] = true
 								}
 							}
 							else {
@@ -159,7 +168,7 @@ class File
 							this.locals[keyword] = {
 								name: normalized
 							}
-							keyword = '';
+							keyword = ''
 							index ++
 							break keyword
 						}
@@ -186,9 +195,10 @@ class File
 						}
 						if (keyword.breaks) {
 							console.debug('breaks')
-							this.dest += this.chain(chain)
-							chain      = []
+							this.dest        += this.chain(chain)
 							this.chain_column = column
+							chain             = []
+							chain_index       = index
 						}
 						if (keyword.stop !== undefined) {
 							console.debug('! indent', this.indent, 'stop', keyword)
@@ -246,9 +256,10 @@ class File
 				keyword = ''
 			}
 			if (chain.length) {
-				this.dest += this.chain(chain)
+				this.dest        += this.chain(chain)
 				this.chain_column = column
-				chain = []
+				chain             = []
+				chain_index       = index
 			}
 			if ((next_indent > -1) && (next_indent < this.indent)) {
 				console.debug('indent-', next_indent)
@@ -275,12 +286,18 @@ class File
 		}
 		let dest = ''
 		let indent
+		let normalized = this.indents.length
 		while (chain_indent < (this.indents.length - 1)) {
+			normalized --
 			indent = this.indents.pop()
 			if (!indent) continue
 			if (indent.vars) {
 				console.debug('! unindent', this.indents.length)
-				dest += (typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop
+				if (this.normalized_init[normalized] === true) {
+					dest += '$itr$ = Object.getPrototypeOf($itr$)\n'
+				}
+				let stop = ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop)
+				if (stop) dest += stop + '\n'
 			}
 			if (indent.locals) {
 				this.locals = Object.getPrototypeOf(this.locals)
@@ -293,6 +310,10 @@ class File
 				&& (!chain || (typeof chain[0] !== 'object') || !indent.vars.includes(chain[0].name))
 			) {
 				let indent = this.indents.pop()
+				if (this.normalized_init.length > chain_indent) {
+					dest += '$itr$ = Object.getPrototypeOf($itr$)\n'
+					this.normalized_init = this.normalized_init.slice(0, chain_indent + 1)
+				}
 				if (indent.vars) {
 					console.debug('! unindent', this.indents.length)
 					let stop = ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop)
