@@ -77,6 +77,7 @@ class File
 		let char            = this.source[0]
 		let column          = 1
 		let index           = 0
+		let interrogation   = false
 		let keyword         = ''
 		let keyword_column  = 1
 		let keyword_line    = 1
@@ -138,9 +139,10 @@ class File
 						else {
 							keyword += char
 						}
+						interrogation = (char === '?')
 						index ++ ; if (index === length) break chain ; char = this.source[index]
 						// define keyword
-						if (char === ':') {
+						if ((char === ':') && !interrogation) {
 							this.dest += this.unindent()
 							console.debug(':' + line + ':' + keyword_column, 'set', keyword)
 							let normalized = this.normalize(keyword)
@@ -188,12 +190,12 @@ class File
 							chain      = []
 							this.chain_column = column
 						}
-
 						if (keyword.stop !== undefined) {
 							console.debug('! indent', this.indent, 'stop', keyword)
 							if (this.indents[this.indent]) {
 								let indent = this.indents[this.indent]
-								this.dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + '\n'
+								let stop   = ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop)
+								if (stop !== '') this.dest += stop + '\n'
 							}
 							this.indents[this.indent] = {
 								stop: keyword.stop,
@@ -288,16 +290,13 @@ class File
 		if (indent) {
 			if (
 				(!chain || chain[0])
-				&& (
-					!chain
-					|| (typeof chain[0] !== 'object')
-					|| !indent.vars.includes(chain[0].name)
-				)
+				&& (!chain || (typeof chain[0] !== 'object') || !indent.vars.includes(chain[0].name))
 			) {
 				let indent = this.indents.pop()
 				if (indent.vars) {
 					console.debug('! unindent', this.indents.length)
-					dest += ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop) + '\n'
+					let stop = ((typeof indent.stop === 'function') ? indent.stop.call(this) : indent.stop)
+					if (stop !== '') dest += stop + '\n'
 				}
 				if (indent.locals) {
 					this.locals = Object.getPrototypeOf(this.locals)

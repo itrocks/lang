@@ -18,7 +18,6 @@ let $var = 0
 do {
 $var = 1
 } while (!($var))
-
 while ($var)
 {
 $var = 0

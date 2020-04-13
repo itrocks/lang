@@ -51,6 +51,33 @@ globals = {
 	'>>':   { code: operator },
 	'>>>':  { code: operator },
 
+	'?': {
+		code: function(chain, index) {
+			let index2 = 0
+			for (let element of chain) {
+				if (element.name === ':') {
+					let condition = this.chain(chain.slice(0, index), '')
+					return condition
+						+ ' ? ' + ((index2 > index + 1) ? this.chain(chain.slice(index + 1, index2), '') : condition)
+						+ ' : ' + this.chain(chain.slice(index2 + 1), '')
+				}
+				index2 ++
+			}
+			return this.chain(chain.slice(0, -1), '') + ' ? '
+		},
+		priority: 500,
+		stop:     '',
+		vars:     {':': {}}
+	},
+
+	'?:': {
+		code: function(chain, index) {
+			let condition = this.chain(chain.slice(0, index), '')
+			return condition + ' ? ' + condition + ' : ' + this.chain(chain.slice(index + 1), '')
+		},
+		priority: 500
+	},
+
 	'do': {
 		args: [],
 		code: function() {

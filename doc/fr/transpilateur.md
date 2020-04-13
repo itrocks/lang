@@ -418,6 +418,16 @@ Utilisation :
 - Savoir si on est arrivé au bout du code source.
 - Calculer l'indentation, par soustraction `index - index_save`.
 
+### index2
+```
+Var.code.index2: integer
+```
+
+Position de l'élément secondaire (`element`) dans la chaîne de mots-clés (`chain`).
+
+Lorsque l'instruction est composée de plusieurs délimiteurs, on peut avoir besoin de mémoriser un index secondaire.
+Voir `index`.
+
 ### index_save
 ```
 index_save: integer
@@ -439,6 +449,14 @@ ou est une instruction suivante (`false`).
 
 Utilisation :
 - Cette valeur détermine si le séparateur sera celui par défaut `\n`, ou un séparateur librement défini par le `code`.
+
+### interrogation
+```
+File.transpile.interrogation: boolean
+```
+
+Permet de ne pas interpréter le caractère de `définition` `:` lorsqu'il suit immédiatement un point d'interrogation `?`.
+En effet dans ce cas particulier, il convient d'interpréter l'opérateur ternaire simplifié `?:`.
 
 ### Keyword
 ```
@@ -742,6 +760,16 @@ Utilisation :
 - Avant la génération du code de la chaîne de mots-clés courante, le code constant (`string`) ou généré (`function`)
   est généré par le transpilateur pour la chaîne de mots-clés structure précédente, si les conditions d'indentation sont
   réunies (voir `chain_indent`, `vars`).
+
+### stop
+```
+File.transpile.stop: string
+```
+
+Stocke ici le code source qui marque la fin (voir `Variable.stop`) du bloc structuré d'instructions (`chain`).
+
+C'est un stockage temporaire, pour la ligne suivante : il évite simplement de générer des retours à la ligne `\n` si
+jamais ce code est vide. 
 
 ### transpile
 ```
